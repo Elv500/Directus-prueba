@@ -6,8 +6,8 @@ def test_login_exitoso():
     url = "https://directus-production-a253.up.railway.app/auth/login"
 
     payload = json.dumps({
-    "email": "admin@example.com",
-    "password": "d1r3ctu5"
+        "email": "elvisac.contact@gmail.com",
+        "password": "etg9xm4py6q6722mdd0feskrhqbbtnq7"
     })
     headers = {
     'Content-Type': 'application/json'
