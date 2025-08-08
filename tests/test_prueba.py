@@ -3,11 +3,11 @@ import requests
 import json
 
 def test_login_exitoso():
-    url = "https://directus-production-a253.up.railway.app/auth/login"
+    url = "http://localhost:8055/auth/login"
 
     payload = json.dumps({
-        "email": "elvisac.contact@gmail.com",
-        "password": "etg9xm4py6q6722mdd0feskrhqbbtnq7"
+        "email": "admin@example.com",
+        "password": "admin123"
     })
     headers = {
     'Content-Type': 'application/json'

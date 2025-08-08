@@ -6,11 +6,44 @@ on:
       - development
 
 jobs:
-  test-directus:
+  test-directus-local:
     runs-on: ubuntu-latest
-
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: directus
+          POSTGRES_PASSWORD: directus_password
+          POSTGRES_DB: directus
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
     - uses: actions/checkout@v3
+
+    - name: Levantar Directus
+      run: |
+        docker run -d --name directus-test -p 8055:8055 --link postgres \
+          -e DIRECTUS_DATABASE_HOST=postgres \
+          -e DIRECTUS_DATABASE_PORT=5432 \
+          -e DIRECTUS_DATABASE_NAME=directus \
+          -e DIRECTUS_DATABASE_USER=directus \
+          -e DIRECTUS_DATABASE_PASSWORD=directus_password \
+          -e DIRECTUS_ADMIN_EMAIL=admin@example.com \
+          -e DIRECTUS_ADMIN_PASSWORD=admin123 \
+          directus/directus:latest
+
+    - name: Esperar Directus
+      run: |
+        for i in {1..30}; do
+          curl -s http://localhost:8055/_/health && break
+          echo "Esperando a Directus..."
+          sleep 5
+        done
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -22,5 +55,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run tests
+    - name: Ejecutar tests
       run: pytest
+
+    - name: Detener Directus
+      run: docker stop directus-test
