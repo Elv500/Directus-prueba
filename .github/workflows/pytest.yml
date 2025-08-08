@@ -12,24 +12,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Levantar Directus con Docker
-      run: |
-        docker pull directus/directus:latest
-        docker run -d -p 8055:8055 --name directus directus/directus:latest
-
-    - name: Esperar a que Directus esté listo
-      run: |
-        for i in {1..30}; do
-          if curl -s http://localhost:8055/ | grep "healthy" > /dev/null; then
-            echo "Directus está listo"
-            exit 0
-          fi
-          echo "Esperando Directus..."
-          sleep 5
-        done
-        echo "Timeout esperando Directus"
-        exit 1
-
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -40,9 +22,5 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Ejecutar tests
+    - name: Run tests
       run: pytest
-
-    - name: Detener Directus
-      if: always()
-      run: docker stop directus && docker rm directus

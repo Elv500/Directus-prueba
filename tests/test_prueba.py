@@ -3,7 +3,7 @@ import requests
 import json
 
 def test_login_exitoso():
-    url = "http://localhost:8055/auth/login"
+    url = "https://directus-production-a253.up.railway.app/auth/login"
 
     payload = json.dumps({
     "email": "admin@example.com",
