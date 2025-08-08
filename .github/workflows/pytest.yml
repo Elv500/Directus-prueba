@@ -1,4 +1,4 @@
-name: Run Directus Tests
+name: Test Directus locally
 
 on:
   push:
@@ -8,36 +8,36 @@ on:
 jobs:
   test-directus-local:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_USER: directus
-          POSTGRES_PASSWORD: directus_password
-          POSTGRES_DB: directus
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+
     steps:
     - uses: actions/checkout@v3
 
-    - name: Levantar Directus
+    - name: Crear docker-compose.yml
       run: |
-        docker run -d --name directus-test -p 8055:8055 --link postgres \
-          -e DIRECTUS_DATABASE_HOST=postgres \
-          -e DIRECTUS_DATABASE_PORT=5432 \
-          -e DIRECTUS_DATABASE_NAME=directus \
-          -e DIRECTUS_DATABASE_USER=directus \
-          -e DIRECTUS_DATABASE_PASSWORD=directus_password \
-          -e DIRECTUS_ADMIN_EMAIL=admin@example.com \
-          -e DIRECTUS_ADMIN_PASSWORD=admin123 \
-          directus/directus:latest
+        cat > docker-compose.yml <<EOF
+        version: "3"
+        services:
+          directus:
+            image: directus/directus:11.5.1
+            ports:
+              - 8055:8055
+            volumes:
+              - ./database:/directus/database
+              - ./uploads:/directus/uploads
+              - ./extensions:/directus/extensions
+            environment:
+              SECRET: "replace-with-random-value"
+              ADMIN_EMAIL: "admin@example.com"
+              ADMIN_PASSWORD: "d1r3ctu5"
+              DB_CLIENT: "sqlite3"
+              DB_FILENAME: "/directus/database/data.db"
+              WEBSOCKETS_ENABLED: "true"
+        EOF
 
-    - name: Esperar Directus
+    - name: Levantar Directus con docker-compose
+      run: docker compose up -d
+
+    - name: Esperar a que Directus esté listo
       run: |
         for i in {1..30}; do
           curl -s http://localhost:8055/_/health && break
@@ -45,7 +45,7 @@ jobs:
           sleep 5
         done
 
-    - name: Set up Python
+    - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.13'
@@ -58,5 +58,5 @@ jobs:
     - name: Ejecutar tests
       run: pytest
 
-    - name: Detener Directus
-      run: docker stop directus-test
+    - name: Apagar directus
+      run: docker compose down
