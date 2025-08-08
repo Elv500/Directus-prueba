@@ -20,7 +20,7 @@ jobs:
     - name: Esperar a que Directus esté listo
       run: |
         for i in {1..30}; do
-          if curl -s http://localhost:8055/health | grep "healthy" > /dev/null; then
+          if curl -s http://localhost:8055/ | grep "healthy" > /dev/null; then
             echo "Directus está listo"
             exit 0
           fi
